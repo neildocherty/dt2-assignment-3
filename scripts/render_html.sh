@@ -8,11 +8,28 @@ TMP=$(mktemp)
 
 uv run jupyter nbconvert --to html "$NB" --embed-images --stdout > "$TMP"
 
-uv run python - "$TMP" "$OUT" <<'PY'
+uv run python - "$TMP" "$OUT" "$NB" <<'PY'
+import base64
+import re
 import sys
 from pathlib import Path
-tmp, out = sys.argv[1], sys.argv[2]
+tmp, out, nb = sys.argv[1], sys.argv[2], sys.argv[3]
 html = Path(tmp).read_text()
+nb_dir = Path(nb).parent.resolve()
+
+def inline_local_image(match):
+    src = match.group(1)
+    if src.startswith(('http://', 'https://', 'data:')):
+        return match.group(0)
+    img_path = (nb_dir / src).resolve()
+    if not img_path.exists():
+        return match.group(0)
+    ext = img_path.suffix.lstrip('.').lower()
+    mime = {'jpg': 'jpeg', 'jpeg': 'jpeg', 'png': 'png', 'gif': 'gif', 'svg': 'svg+xml', 'webp': 'webp'}.get(ext, ext)
+    data = base64.b64encode(img_path.read_bytes()).decode('ascii')
+    return f'src="data:image/{mime};base64,{data}"'
+
+html = re.sub(r'src="([^"]+)"', inline_local_image, html)
 css = (
     "<style>"
     "body{max-width:80rem;margin:0 auto;padding:1rem 2rem;}"
