@@ -1,0 +1,8 @@
+{
+  "mase": 8.361557784377993,
+  "wql": 7.418495172743956,
+  "coverage_80": 0.125,
+  "mape": 37.81418667230777,
+  "method": "ollama_llama31",
+  "runtime_s": null
+}
