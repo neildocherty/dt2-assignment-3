@@ -8,7 +8,6 @@ __pycache__/
 .python-version
 
 data/raw/
-outputs/report.html
 
 .DS_Store
 *.egg-info/
